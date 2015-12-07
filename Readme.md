@@ -1,8 +1,11 @@
-Wrong Way, a clone of the ASCII-based game for DOS machines. This version differs in that:
-1) is for GNU/Linux with ncurses, not DOS;
-2) it does not precisely reproduce the look and feel of the original Wrong Way game.
+Wrong Way
+==========
+A clone of the ASCII-based game for DOS machines. This version differs in that:
+  1. is for GNU/Linux with ncurses, not DOS;
+  2. it does not precisely reproduce the look and feel of the original Wrong Way game.
 
 NOTES
+------
 v. 0.0, first GitHub push
 
 Current compilation is very straightforward. In the directory where main.c resides, enter:
