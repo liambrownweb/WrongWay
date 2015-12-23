@@ -28,6 +28,22 @@ int checkCell(int c_row, int c_col) {
 	return screen_map[c_row][c_col];
 }
 
+void addNPC() {
+	player* new_npc = malloc(sizeof(player));
+	int new_coords[2], row, col;
+	findEmpty(new_coords);
+	row = new_coords[0];
+	col = new_coords[1];
+	new_npc->row = row;
+	new_npc->col = col;
+	new_npc->direction = RIGHT;
+	new_npc->ticks_per_move = 30;
+	new_npc->ticks_since_last_move = 0;
+	new_npc->avatar = '@';
+	new_npc->turn_dir = CW;
+	npcs[npc_count++] = *new_npc;
+}
+
 void addTurn(int row, int col) {
 	screen_map[row][col] = TURN;
 }
@@ -87,8 +103,21 @@ void drawSquare(int orig_x, int orig_y, int width, int height, int line_type) {
 	addTurn(orig_y + 1, width - 1);
 }
 
+void findEmpty(int* row_col) {
+	int row = 1;
+	int col = 10;
+	while (checkCell(row, col) != EMPTY) {
+		//generate new row and column
+		row = 1;
+		col = 10;
+	}
+	row_col[0] = row;
+	row_col[1] = col;
+}
+
 int initMap(){
 	int i, j;
+	npc_count = 0;
 	screen_map = (int**) malloc(sizeof(int*) * max_y);
 	for (i = 0; i < max_y; i++) {
 		screen_map[i] = (int*) malloc(sizeof(int) * max_x);
@@ -96,6 +125,8 @@ int initMap(){
 			screen_map[i][j] = EMPTY;
 		}
 	}
+	npcs = (player*) malloc(sizeof(player*) * 10);
+	addNPC();
 	return 0;
 }
 
@@ -105,6 +136,7 @@ int killMap(){
 		free(screen_map[i]);
 	}
 	free(screen_map);
+	free(npcs);
 	return 0;
 }
 
@@ -126,40 +158,45 @@ int main() {
 	cbreak();
 	timeout(0);
 	getmaxyx(stdscr, max_y, max_x);
-	initMap();
-	keypad(stdscr, TRUE); /* Get interactive functionality like function and arrow keys */
-	row = max_y >> 1;
-	col = max_x >> 1;
-	drawBoard(6);
-	player1.row = max_y - 2;
-	player1.col = max_x >> 1;
-	player1.direction = RIGHT;
-	player1.ticks_per_move = 20;
-	player1.ticks_since_last_move = 0;
-	player1.avatar = '%';
-	player1.turn_dir = CCW;
-	refresh();			/* Print it on to the real screen */
-	previous = clock();
-	clock_t current;
-	float lag = 0.0;
-	while (true && input != 3) {
-		previous = current;
-		current = clock();
-		float elapsed = ((current - previous) * 1000) / CLOCKS_PER_SEC; 
-		lag += elapsed;
-		if ((input = getch()) != ERR){
-			processInput(input);
-		}
+	if (max_y < 40 || max_x < 40) {
+		endwin();
+		printf("Console dimensions are too small to run this game!");
+	} else {
+		initMap();
+		keypad(stdscr, TRUE); /* Get interactive functionality like function and arrow keys */
+		row = max_y >> 1;
+		col = max_x >> 1;
+		drawBoard(6);
+		player1.row = max_y - 2;
+		player1.col = max_x >> 1;
+		player1.direction = RIGHT;
+		player1.ticks_per_move = 30;
+		player1.ticks_since_last_move = 0;
+		player1.avatar = '%';
+		player1.turn_dir = CCW;
+		refresh();			/* Print it on to the real screen */
+		previous = clock();
+		clock_t current;
+		float lag = 0.0;
+		while (true && input != 3 && input != 'q') {
+			previous = current;
+			current = clock();
+			float elapsed = ((current - previous) * 1000) / CLOCKS_PER_SEC; 
+			lag += elapsed;
+			if ((input = getch()) != ERR){
+				processInput(input);
+			}
 
-		while ((int)lag >= MS_PER_UPDATE)
-		{
-			step();
-			lag = 0;
+			while ((int)lag >= MS_PER_UPDATE)
+			{
+				step();
+				lag = 0;
+			}
+			drawMovables();
 		}
-		drawMovables();
+		killMap();
+		endwin();			/* End curses mode		  */
 	}
-	endwin();			/* End curses mode		  */
-	killMap();
 	curs_set(2);
 	echo();
 	return 0;
@@ -178,8 +215,13 @@ void processInput(int my_input) {
 	}
 }
 int drawMovables(){
+	int i;
 	mvaddch(player1.old_row, player1.old_col, ' ');
 	mvaddch(player1.row, player1.col, player1.avatar);
+	for (i = 0; i < npc_count; i++) {
+		mvaddch(npcs[i].old_row, npcs[i].old_col, ' ');
+		mvaddch(npcs[i].row, npcs[i].col, npcs[i].avatar);
+	}
 	refresh();
 	return 0;
 }
@@ -220,9 +262,17 @@ int turnChar (player* current) {
 }
 
 void step() {
+	int i;
 	player1.ticks_since_last_move += 1;
 	if (player1.ticks_since_last_move >= player1.ticks_per_move){
 		moveChar(&player1);
 		player1.ticks_since_last_move = 0;
+	}
+	for (i = 0; i < npc_count; i++){
+		npcs[i].ticks_since_last_move += 1;
+		if (npcs[i].ticks_since_last_move >= npcs[i].ticks_per_move){
+			moveChar(&npcs[i]);
+			npcs[i].ticks_since_last_move = 0;
+		}
 	}
 }

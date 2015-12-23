@@ -38,11 +38,13 @@
 #define CCW 1
 
 /* for main.h */
+void addNPC();
 void addTurn(int, int);
 int main();
 int moveChar();
 void drawBoard(int);
 int drawMovables();
+void findEmpty(int*);
 void buildWall(int, int, int, int);
 void drawSquare(int, int, int, int, int);
 int initMap();
@@ -62,6 +64,8 @@ typedef struct {
 } player;
 
 player player1;
+player* npcs;
+int npc_count;
 int** screen_map;
 int input, max_x, max_y, row, col = 0;
 double previous;
