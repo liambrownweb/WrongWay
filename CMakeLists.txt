@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 2.6)
+project (wway)
+find_package(Curses REQUIRED)
+add_library(Curses SHARED IMPORTED)
+include_directories(${CURSES_INCLUDE_DIR})
+add_executable(wway main.c)
+target_link_libraries(wway ${CURSES_LIBRARIES})

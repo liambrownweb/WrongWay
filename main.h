@@ -40,6 +40,7 @@
 /* for main.h */
 void addNPC();
 void addTurn(int, int);
+int detectCollision();
 int main();
 int moveChar();
 void drawBoard(int);
@@ -66,6 +67,7 @@ typedef struct {
 player player1;
 player* npcs;
 int npc_count;
+int collision = 0;
 int** screen_map;
 int input, max_x, max_y, row, col = 0;
 double previous;

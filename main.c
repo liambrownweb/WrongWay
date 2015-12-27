@@ -84,6 +84,17 @@ void clearSquare(int orig_x, int orig_y, int width, int height) {
 	}
 }
 
+int detectCollision() {
+	int collision = 0;
+	int i;
+	for (i = 0; i < npc_count; i++) {
+		if (player1.row == npcs[i].row && player1.col == npcs[i].col) {
+			collision++;
+		}
+	}
+	return collision;
+}
+
 void drawSquare(int orig_x, int orig_y, int width, int height, int line_type) {
 	mvhline(orig_y, orig_x, 0, width-orig_x);
 	buildWall(orig_y, orig_x, width-orig_x, RIGHT);
@@ -178,7 +189,7 @@ int main() {
 		previous = clock();
 		clock_t current;
 		float lag = 0.0;
-		while (true && input != 3 && input != 'q') {
+		while (!collision && input != 3 && input != 'q') {
 			previous = current;
 			current = clock();
 			float elapsed = ((current - previous) * 1000) / CLOCKS_PER_SEC; 
@@ -263,6 +274,7 @@ int turnChar (player* current) {
 
 void step() {
 	int i;
+	collision = detectCollision();
 	player1.ticks_since_last_move += 1;
 	if (player1.ticks_since_last_move >= player1.ticks_per_move){
 		moveChar(&player1);
